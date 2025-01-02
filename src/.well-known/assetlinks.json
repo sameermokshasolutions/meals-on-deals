@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.mealsondeals",
+      "sha256_cert_fingerprints": [
+        "3F:F4:4C:32:CF:36:AA:25:44:84:44:A2:74:0F:67:EB:A5:24:2E:31:D0:6F:7B:09:50:CD:1D:96:54:24:4E:48",
+        "3E:0A:1A:36:DE:22:0C:9F:D8:52:49:13:AC:35:A2:89:10:DF:BB:B5:E4:3E:A9:CE:F5:30:CE:07:5F:26:BA:AD"
+      ]
+    }
+  }
+]
