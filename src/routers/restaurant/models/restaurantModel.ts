@@ -8,6 +8,7 @@ export interface restaurant extends Document {
     contact: string;
     barcodeId: number;
     createdBy: mongoose.Types.ObjectId; // Reference to the user who created the restaurant
+    role: string;
     active: boolean;
 }
 
@@ -20,6 +21,7 @@ const restaurantSchema: Schema = new Schema(
         password: { type: String, required: true, trim: true },
         contact: { type: String, required: true, unique: true, trim: true },
         barcodeId: { type: Number, required: true, unique: true },
+        role: { type: String, default: 'restaurantAdmin' },
         createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // Reference to user
         active: { type: Boolean, default: true }
     },

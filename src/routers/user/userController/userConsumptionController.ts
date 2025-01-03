@@ -74,9 +74,6 @@ export const getUserConsumptionData = async (req: any, res: Response, next: Next
       const couponId = (coupon as Document<unknown, {}, ICoupon> & ICoupon)._id;
       return couponId && !usedCouponIds.has(couponId.toString());
     });
-
-
-
     res.status(200).json({
       success: true,
       usedCoupons,
