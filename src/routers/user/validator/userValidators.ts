@@ -1,12 +1,7 @@
 import { body, ValidationChain } from 'express-validator';
 // user register fields validations 
 export const registerValidation: ValidationChain[] = [
-    body('userName')
-        .trim()
-        .notEmpty()
-        .withMessage('First name is required')
-        .isLength({ min: 2, max: 50 })
-        .withMessage('First name must be between 2 and 50 characters'),
+
     body('email')
         .trim()
         .notEmpty()

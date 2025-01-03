@@ -15,9 +15,14 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
         console.log(req.body);
 
         // Check if a user with the provided email exists in the database
-        const existingUser = await usermodal.findOne({ email });
+        let existingUser = await usermodal.findOne({ email });
         if (!existingUser) {
             // If user not found, pass a 404 error to the error handler
+            existingUser = await restaurantModel.findOne({ email: email });
+        }
+        if (!existingUser) {
+            // If user not found, pass a 404 error to the error handler
+            // existingUser = await restaurantModel.findOne({ email: email });
             return next(createHttpError(404, 'User not found'));
         }
 
@@ -43,7 +48,6 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
         res.status(200).json({
             success: true,
             role: existingUser.role,
-            name: existingUser.userName,
             email: existingUser.email,
             userId: existingUser._id,
             message: 'Login successful',
@@ -62,7 +66,7 @@ export const restaurentUser = async (req: Request, res: Response, next: NextFunc
         const { email, password } = req.body;
 
         // Check if a user with the provided email exists in the database
-        const existingUser = await restaurantModel.findOne({ ownerEmailId: email });
+        const existingUser = await restaurantModel.findOne({ email: email });
         if (!existingUser) {
             // If user not found, pass a 404 error to the error handler
             return next(createHttpError(404, 'User not found'));
@@ -91,7 +95,7 @@ export const restaurentUser = async (req: Request, res: Response, next: NextFunc
             success: true,
             role: 'restaurent',
             name: existingUser.restaurantName,
-            email: existingUser.ownerEmailId,
+            email: existingUser.email,
             userId: existingUser._id,
             message: 'Login successful',
         });
@@ -136,11 +140,11 @@ export const deleteUser = async (req: any, res: Response, next: NextFunction): P
 
         const userData = await usermodal.findOne({ email });
         if (!userData) {
-            return next(createHttpError(403, 'Invalid username or password! '));
+            return next(createHttpError(403, 'Invalid email or password! '));
         }
         const isMatch = await bcrypt.compare(password, userData.password);
         if (!isMatch) {
-            return next(createHttpError(403, 'Invalid username or password! '));
+            return next(createHttpError(403, 'Invalid email or password! '));
         }
         const deletedUser = await usermodal.deleteOne({ _id: userData._id });
 

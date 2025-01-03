@@ -12,11 +12,11 @@ export const registerRestaurant = async (req: any, res: Response, next: NextFunc
 
     console.log(req.body);
 
-    const { restaurantName, ownerEmailId, address, password, contact } = req.body;
+    const { restaurantName, email, address, password, contact } = req.body;
     const userId = req.user?.id; // Assuming user ID is available in the request object (e.g., via middleware)
 
     // Check if the email or contact number is already registered
-    const existingrestaurant = await restaurantModel.findOne({ ownerEmailId });
+    const existingrestaurant = await restaurantModel.findOne({ email });
     const existingContact = await restaurantModel.findOne({ contact });
 
     if (existingrestaurant) {
@@ -32,7 +32,7 @@ export const registerRestaurant = async (req: any, res: Response, next: NextFunc
     // Create a new restaurant
     const restaurant = new restaurantModel({
       restaurantName,
-      ownerEmailId,
+      email,
       address,
       password: hashedPassword,
       barcodeId,
@@ -66,7 +66,7 @@ function generateUnique8DigitNumber() {
 export const updateRestaurant = async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const { restaurantName, ownerEmailId, address, contact } = req.body;
+    const { restaurantName, email, address, contact } = req.body;
     const userId = req.user?.id;
 
 
@@ -81,7 +81,7 @@ export const updateRestaurant = async (req: any, res: Response, next: NextFuncti
 
     // Update the restaurant details
     restaurant.restaurantName = restaurantName || restaurant.restaurantName;
-    restaurant.ownerEmailId = ownerEmailId || restaurant.ownerEmailId;
+    restaurant.email = email || restaurant.email;
     restaurant.address = address || restaurant.address;
     restaurant.contact = contact || restaurant.contact;
 
@@ -100,7 +100,7 @@ export const updateRestaurant = async (req: any, res: Response, next: NextFuncti
 export const deleteRestaurant = async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const { restaurantName, ownerEmailId, address, contact } = req.body;
+    const { restaurantName, email, address, contact } = req.body;
     const userId = req.user?.id// Assuming user ID is available in the request object
 
     // Find the restaurant and ensure the creator is the one updating it
@@ -115,7 +115,7 @@ export const deleteRestaurant = async (req: any, res: Response, next: NextFuncti
 
     // Update the restaurant details
     restaurant.restaurantName = restaurantName || restaurant.restaurantName;
-    restaurant.ownerEmailId = ownerEmailId || restaurant.ownerEmailId;
+    restaurant.email = email || restaurant.email;
     restaurant.address = address || restaurant.address;
     restaurant.contact = contact || restaurant.contact;
     restaurant.active = restaurant.active ? false : true;
@@ -136,7 +136,7 @@ export const restaurantInfo = async (req: any, res: Response, next: NextFunction
 
     const { id } = req.params;
 
-    const { restaurantName, ownerEmailId, address, contact } = req.body;
+    const { restaurantName, email, address, contact } = req.body;
     const userId = req.user?.id// Assuming user ID is available in the request object
 
     // Find the restaurant and ensure the creator is the one updating it
@@ -220,7 +220,6 @@ export const restaurantUsers = async (req: any, res: any, next: NextFunction) =>
     let dummy = [{
 
       role: 'User',
-      userName: "Name",
       email: 'samsk7774@gmail.com ',
       contactNumber: '1234567890'
     }]
@@ -233,7 +232,7 @@ export const restaurantUsers = async (req: any, res: any, next: NextFunction) =>
   }
 };
 export const restaurantCoupons = async (req: any, res: any, next: NextFunction) => {
-// zhak maro
+  // zhak maro
   try {
     const userId = req.user?.id; // Ensure user ID is present
     if (!userId) {
@@ -243,7 +242,7 @@ export const restaurantCoupons = async (req: any, res: any, next: NextFunction) 
       restaurantId: userId,
     });
     console.log('asdjh');
-    
+
     console.log(coupons);
 
 

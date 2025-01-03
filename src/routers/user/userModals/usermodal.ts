@@ -4,7 +4,7 @@ import mongoose, { Schema, Document, ObjectId } from 'mongoose';
 export interface IUser extends Document {
   userId: number;
   role: 'user' | 'superuser' | 'restaurant';
-  userName: string;
+
   email: string;
   password: string;
   contactNumber?: string;
@@ -17,7 +17,7 @@ const UserSchema: Schema = new Schema(
   {
     userId: { type: Number, required: true, unique: true },
     role: { type: String, enum: ['user', 'superuser', 'restaurant'], default: 'user' },
-    userName: { type: String, required: true },
+ 
     email: { type: String, required: true, match: /^\S+@\S+\.\S+$/ },
     password: { type: String, required: true },
     contactNumber: { type: String, match: /^[0-9]{10,20}$/ },

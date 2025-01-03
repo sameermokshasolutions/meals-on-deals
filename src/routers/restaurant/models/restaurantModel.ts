@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface restaurant extends Document {
     restaurantName: string;
-    ownerEmailId: string;
+    email: string;
     address: string;
     password: string;
     contact: string;
@@ -16,7 +16,7 @@ export interface restaurant extends Document {
 const restaurantSchema: Schema = new Schema(
     {
         restaurantName: { type: String, required: true, trim: true },
-        ownerEmailId: { type: String, required: true, unique: true, trim: true },
+        email: { type: String, required: true, unique: true, trim: true },
         address: { type: String, required: true, trim: true },
         password: { type: String, required: true, trim: true },
         contact: { type: String, required: true, unique: true, trim: true },

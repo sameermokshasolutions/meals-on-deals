@@ -18,7 +18,7 @@ if (!process.env.JWT_SECRET) {
 // Handler to register a new user 
 export const registerUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    let { userName, email, password, contactNumber, role } = req.body;
+    let {  email, password, contactNumber, role } = req.body;
     if (role == '') {
       role = 'user'
     }
@@ -42,7 +42,7 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
     // Create a new user with the provided data and default inactive status
     const user = new usermodal({
       userId,
-      userName,
+
       email,
       password: hashedPassword,
       contactNumber,

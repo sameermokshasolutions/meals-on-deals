@@ -2,7 +2,7 @@ import { body, ValidationChain } from "express-validator";
 
 // Login validations 
 export const restaurantValidator: ValidationChain[] = [
-    body('ownerEmailId')
+    body('email')
         .trim()
         .notEmpty()
         .withMessage('Email is required')
