@@ -91,11 +91,24 @@ export const getUserConsumptionData = async (req: any, res: Response, next: Next
 
 export const redeemCoupen = async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const userId = req.user?.id;
-    const { couponId } = req.params;
-    console.log(couponId);
+    const restaurantId = req.user?.id;
+    const { couponId, userId } = req.params;
+    if (!userId || !couponId) {
+      res.status(400).json({ message: 'Missing userId or couponId' });
+      return;
+    }
     if (!mongoose.isValidObjectId(couponId)) {
       res.status(400).json({ message: 'Invalid coupon ID' });
+      return;
+    }
+    // check coupen is assosiated with the restaurant or not  
+    const coupon = await couponModel.findById(couponId);
+    if (!coupon) {
+      res.status(404).json({ message: 'Coupon not found' });
+      return;
+    }
+    if (!coupon.restaurantId.equals(new ObjectId(restaurantId))) {
+      res.status(403).json({ message: 'Coupon not associated with this restaurant' });
       return;
     }
     const currentDate = new Date();
@@ -133,11 +146,7 @@ export const redeemCoupen = async (req: any, res: Response, next: NextFunction):
     }
 
     // Fetch the coupon details
-    const coupon = await couponModel.findById(couponId);
-    if (!coupon) {
-      res.status(404).json({ message: 'Coupon not found' });
-      return;
-    }
+
 
     // Check if the restaurant exists in the user's usedCoupons
     const restaurantIndex = userConsumption.usedCoupons.findIndex(

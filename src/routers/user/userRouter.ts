@@ -22,5 +22,5 @@ userRouter.delete("/", deleteUser);
 // connect user to restaurent after scan 
 userRouter.get("/getrestaurant", validateRequest, authenticateToken, getRestaurent);
 userRouter.get("/getrestaurant/:couponId", validateRequest, authenticateToken, getUserConsumptionData);
-userRouter.get("/redeemCoupon/:couponId", validateRequest, authenticateToken, redeemCoupen);
+userRouter.get("/redeemCoupon/:couponId/:userId", validateRequest, authenticateToken, redeemCoupen);
 export default userRouter;
