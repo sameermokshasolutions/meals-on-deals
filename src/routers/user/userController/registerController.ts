@@ -1,3 +1,4 @@
+import restaurantModel, { restaurant } from './../../restaurant/models/restaurantModel';
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
 import createHttpError from 'http-errors';
@@ -18,7 +19,7 @@ if (!process.env.JWT_SECRET) {
 // Handler to register a new user 
 export const registerUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    let {  email, password, contactNumber, role } = req.body;
+    let { email, password, contactNumber, role } = req.body;
     if (role == '') {
       role = 'user'
     }
@@ -78,3 +79,35 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
     next(error); // Pass any error to the error handling middleware
   }
 };
+export const addLogo = async (req: any, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { logoUrl } = req.body;
+    const restaurantId = req.user?.id;
+
+    if (logoUrl === '') {
+      throw createHttpError(409, 'Invalid URL');
+    }
+
+    const existingUser = await restaurantModel.findOne({ _id: restaurantId });
+    if (!existingUser) {
+      throw createHttpError(404, 'Restaurant not found');
+    }
+
+    const updateResult = await restaurantModel.updateOne(
+      { _id: restaurantId },
+      { logoUrl }
+    );
+
+    if (updateResult.modifiedCount === 0) {
+      throw createHttpError(409, 'Logo update failed');
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Logo added successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

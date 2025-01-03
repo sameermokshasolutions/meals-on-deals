@@ -13,7 +13,6 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
         // Extract email and password from the request body
         const { email, password } = req.body;
 
-
         // Check if a user with the provided email exists in the database
         let existingUser: any = await usermodal.findOne({ email });
         if (!existingUser) {
@@ -22,7 +21,6 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
         }
         if (!existingUser) {
             // If user not found, pass a 404 error to the error handler
-            // existingUser = await restaurantModel.findOne({ email: email });
             return next(createHttpError(404, 'User not found'));
         }
 

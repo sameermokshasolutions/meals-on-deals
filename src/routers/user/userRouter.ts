@@ -1,7 +1,7 @@
 import express from "express";
 import { loginValidation, registerValidation } from "./validator/userValidators";
 import { validateRequest } from "../../middlewares/validateRequest";
-import { registerUser } from "./userController/registerController";
+import { addLogo, registerUser } from "./userController/registerController";
 import { deleteUser, loginUser, restaurentUser } from "./userController/loginController";
 import { authenticateToken } from "../../middlewares/authMiddleware";
 import { redeemCoupen, getUserConsumptionData, getRestaurent } from "./userController/userConsumptionController";
@@ -11,6 +11,7 @@ const userRouter = express.Router();
 
 // Route for user registration with validation middleware
 userRouter.post("/register", ...registerValidation, validateRequest, registerUser);
+userRouter.post("/updateLogo", validateRequest, authenticateToken, addLogo);
 
 // Route for user login with validation middleware
 userRouter.post("/login", ...loginValidation, validateRequest, loginUser);
