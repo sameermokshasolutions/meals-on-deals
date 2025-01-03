@@ -8,20 +8,16 @@ import { redeemCoupen, getUserConsumptionData, getRestaurent } from "./userContr
 
 
 const userRouter = express.Router();
-
 // Route for user registration with validation middleware
 userRouter.post("/register", ...registerValidation, validateRequest, registerUser);
 userRouter.post("/updateLogo", validateRequest, authenticateToken, addLogo);
-
 // Route for user login with validation middleware
 userRouter.post("/login", ...loginValidation, validateRequest, loginUser);
 userRouter.post("/login/restaurent", ...loginValidation, validateRequest, restaurentUser);
-
 userRouter.delete("/", deleteUser);
-
 //  user Consumtion routes 
 // connect user to restaurent after scan 
 userRouter.get("/getrestaurant", validateRequest, authenticateToken, getRestaurent);
-userRouter.get("/getrestaurant/:couponId", validateRequest, authenticateToken, getUserConsumptionData);
+userRouter.get("/getrestaurant/:barcodeId", validateRequest, authenticateToken, getUserConsumptionData);
 userRouter.get("/redeemCoupon/:couponId/:userId", validateRequest, authenticateToken, redeemCoupen);
 export default userRouter;

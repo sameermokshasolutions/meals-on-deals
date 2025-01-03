@@ -6,7 +6,15 @@ import couponModel from '../models/couponModel';
 export const createCoupon = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const { couponTitle, discount, restaurantId } = req.body;
-        const coupon = new couponModel({ couponTitle, discount, restaurantId });
+        // Get the latest coupon number
+        const lastCoupon = await couponModel.findOne().sort({ couponNumber: -1 });
+        const nextCouponNumber = lastCoupon ? lastCoupon.couponNumber + 1 : 1;
+        const coupon = new couponModel({
+            couponNumber: nextCouponNumber,
+            couponTitle,
+            discount,
+            restaurantId
+        });
         await coupon.save();
         res.status(201).json({
             success: true,
@@ -21,7 +29,7 @@ export const createCoupon = async (req: Request, res: Response, next: NextFuncti
 export const getCoupons = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const { restaurantId, search } = req.query;
-    
+
 
         const query: any = {};
         if (restaurantId) query.restaurantId = restaurantId;
@@ -34,7 +42,7 @@ export const getCoupons = async (req: Request, res: Response, next: NextFunction
         });
     } catch (error) {
         console.log(error);
-        
+
         next(error);
     }
 };

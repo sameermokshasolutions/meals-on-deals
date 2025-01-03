@@ -30,10 +30,10 @@ export const getRestaurent = async (req: any, res: Response, next: NextFunction)
 export const getUserConsumptionData = async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.user?.id;
-    const { couponId } = req.params;
-    const restaurentData: any = await restaurantModel.findOne({ barcodeId: couponId });
+    const { barcodeId } = req.params;
+    const restaurentData: any = await restaurantModel.findOne({ barcodeId: barcodeId });
     if (!restaurentData || restaurentData == null) {
-      next(createHttpError({ status: 404, success: false, message: "halaluya " }))
+      next(createHttpError({ status: 404, success: false, message: "Something went wrong " }))
     }
     const restaurantId = restaurentData._id
     if (!userId || !restaurantId) {

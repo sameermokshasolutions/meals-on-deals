@@ -203,9 +203,6 @@ export const listRestaurants = async (req: any, res: any, next: NextFunction) =>
   }
 };
 export const restaurantUsers = async (req: any, res: any, next: NextFunction) => {
-
-  console.log('---------------------------------------------------', req.user);
-
   try {
     const userId = req.user?.id; // Ensure user ID is present
     if (!userId) {
@@ -215,10 +212,7 @@ export const restaurantUsers = async (req: any, res: any, next: NextFunction) =>
       restaurantId: userId,
       role: 'user'
     });
-
-
     let dummy = [{
-
       role: 'User',
       email: 'samsk7774@gmail.com ',
       contactNumber: '1234567890'
@@ -232,7 +226,6 @@ export const restaurantUsers = async (req: any, res: any, next: NextFunction) =>
   }
 };
 export const restaurantCoupons = async (req: any, res: any, next: NextFunction) => {
-  // zhak maro
   try {
     const userId = req.user?.id; // Ensure user ID is present
     if (!userId) {
@@ -241,11 +234,6 @@ export const restaurantCoupons = async (req: any, res: any, next: NextFunction) 
     const coupons = await couponModel.find({
       restaurantId: userId,
     });
-    console.log('asdjh');
-
-    console.log(coupons);
-
-
     res.status(200).json({
       success: true,
       data: coupons
