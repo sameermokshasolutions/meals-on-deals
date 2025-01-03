@@ -9,6 +9,7 @@ export interface restaurant extends Document {
     barcodeId: number;
     createdBy: mongoose.Types.ObjectId; // Reference to the user who created the restaurant
     role: string;
+    logoUrl?: string;
     active: boolean;
 }
 
@@ -19,6 +20,7 @@ const restaurantSchema: Schema = new Schema(
         email: { type: String, required: true, unique: true, trim: true },
         address: { type: String, required: true, trim: true },
         password: { type: String, required: true, trim: true },
+        logoUrl: { type: String, default: '' },
         contact: { type: String, required: true, unique: true, trim: true },
         barcodeId: { type: Number, required: true, unique: true },
         role: { type: String, default: 'restaurantAdmin' },
