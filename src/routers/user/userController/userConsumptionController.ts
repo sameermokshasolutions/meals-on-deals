@@ -2,11 +2,26 @@ import { NextFunction, Request, Response } from 'express';
 import { ObjectId } from 'mongodb';
 import mongoose, { Document } from 'mongoose';
 
-import UserConsumption, { IUserConsumption } from '../userModals/UserConsumption';
-import couponModel, { ICoupon } from '../../coupens/models/couponModel';
+import UserConsumption from '../userModals/UserConsumption';
+import couponModel from '../../coupens/models/couponModel';
 import restaurantModel from '../../restaurant/models/restaurantModel';
 import createHttpError from 'http-errors';
-
+interface IUserConsumption {
+  userId: ObjectId;
+  restaurants: ObjectId[];
+  usedCoupons: Array<{
+    restaurantId: ObjectId;
+    usedCoupons: Array<{
+      couponId: ObjectId;
+      usedDate: Date;
+    }>;
+  }>;
+}
+interface ICoupon {
+  _id: ObjectId;
+  couponNumber: number;
+  restaurantId: ObjectId;
+}
 export const getRestaurent = async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.user?.id;
@@ -27,7 +42,10 @@ export const getRestaurent = async (req: any, res: Response, next: NextFunction)
   }
 
 }
-export const getUserConsumptionData = async (req: any, res: Response, next: NextFunction): Promise<void> => {
+
+
+
+export const sssgetUserConsumptionData = async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.user?.id;
     const { barcodeId } = req.params;
@@ -40,6 +58,7 @@ export const getUserConsumptionData = async (req: any, res: Response, next: Next
       res.status(400).json({ message: 'Missing userId or restaurantId' });
       return;
     }
+
     // Find or create user consumption data
     let userConsumption = await UserConsumption.findOne({ userId: new ObjectId(userId) });
     if (!userConsumption) {
@@ -53,6 +72,7 @@ export const getUserConsumptionData = async (req: any, res: Response, next: Next
       userConsumption.restaurants.push(new ObjectId(restaurantId));
       await userConsumption.save();
     }
+
     // Get current month's used coupons
     const currentDate = new Date();
     const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -62,27 +82,214 @@ export const getUserConsumptionData = async (req: any, res: Response, next: Next
     const usedCouponsThisMonth = restaurantUsage
       ? restaurantUsage.usedCoupons.filter((coupon) => coupon.usedDate >= firstDayOfMonth)
       : [];
+
     // Fetch all coupons for the current restaurant
     const allCoupons = await couponModel.find({ restaurantId: new ObjectId(restaurantId) });
-    // Separate coupons into used and unused
+
+    // Get the used coupon numbers for this month
     const usedCouponIds = new Set(usedCouponsThisMonth.map((coupon) => coupon.couponId.toString()));
     const usedCoupons = allCoupons.filter((coupon) => {
-      const couponId = (coupon as Document<unknown, {}, ICoupon> & ICoupon)._id;
-      return couponId && usedCouponIds.has(couponId.toString());
+      const couponDoc = coupon as Document<unknown, {}, ICoupon> & ICoupon;
+      return couponDoc._id && usedCouponIds.has(couponDoc._id.toString());
     });
+
+    // Sort used coupons by couponNumber to find the sequence
+    const usedCouponNumbers = usedCoupons
+      .map(coupon => (coupon as any).couponNumber)
+      .sort((a, b) => a - b);
+
+    // Check if the used coupons form a sequential pattern (1,2,3)
+    const isSequential = usedCouponNumbers.every((num, index) =>
+      num === index + 1
+    );
+
+    // Determine which unused coupons can be used
     const unusedCoupons = allCoupons.filter((coupon) => {
-      const couponId = (coupon as Document<unknown, {}, ICoupon> & ICoupon)._id;
-      return couponId && !usedCouponIds.has(couponId.toString());
+      const couponDoc = coupon as Document<unknown, {}, ICoupon> & ICoupon;
+      if (!couponDoc._id || usedCouponIds.has(couponDoc._id.toString())) {
+        return false;
+      }
+
+      // If coupons 1,2,3 are used sequentially, then coupon 4 can be used
+      if (isSequential && usedCouponNumbers.length > 0) {
+        return couponDoc.couponNumber === usedCouponNumbers.length + 1;
+      }
+
+      // If the sequence is broken or no coupons used, only coupon 1 can be used
+      return couponDoc.couponNumber === 1;
+    }).map(coupon => {
+      const couponDoc = coupon.toObject();
+      return {
+        ...couponDoc,
+        canUse: true
+      };
     });
+
+    // Add remaining unused coupons with canUse = false
+    const remainingUnusedCoupons = allCoupons.filter((coupon) => {
+      const couponDoc = coupon as Document<unknown, {}, ICoupon> & ICoupon;
+      return couponDoc._id &&
+        !usedCouponIds.has(couponDoc._id.toString()) &&
+        !unusedCoupons.some(uc => (uc as any)._id.toString() === couponDoc._id.toString());
+    }).map(coupon => {
+      const couponDoc = coupon.toObject();
+      return {
+        ...couponDoc,
+        canUse: false
+      };
+    });
+
+    // Combine all unused coupons
+    const allUnusedCoupons = [...unusedCoupons, ...remainingUnusedCoupons]
+      .sort((a, b) => a.couponNumber - b.couponNumber);
+
+    res.status(200).json({
+      success: true,
+      usedCoupons,
+      unusedCoupons: allUnusedCoupons,
+      restaurentData
+    });
+  } catch (error) {
+    console.error('Error in getUserConsumptionData:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
+
+// Define interfaces
+interface IRequest {
+  user?: {
+    id: string;
+  };
+  params: {
+    barcodeId: string;
+  };
+}
+
+interface IRestaurant {
+  _id: ObjectId;
+  barcodeId: string;
+  // Add other restaurant fields as needed
+}
+
+interface ICoupon {
+  _id: ObjectId;
+  restaurantId: ObjectId;
+  couponNumber: number;
+  // Add other coupon fields as needed
+}
+
+interface IUsedCoupon {
+  couponId: ObjectId;
+  usedDate: Date;
+}
+
+interface IRestaurantUsage {
+  restaurantId: ObjectId;
+  usedCoupons: IUsedCoupon[];
+}
+
+interface IUserConsumption {
+  userId: ObjectId;
+  restaurants: ObjectId[];
+  usedCoupons: IRestaurantUsage[];
+  save(): Promise<IUserConsumption>;
+}
+export const getUserConsumptionData = async (
+  req: IRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.user?.id;
+    const { barcodeId } = req.params;
+
+    // Find restaurant data
+    const restaurentData:any = await restaurantModel.findOne({ barcodeId }) as  | null;
+    if (!restaurentData) {
+      next(createHttpError(404, "Restaurant not found"));
+      return;
+    }
+
+    const restaurantId = restaurentData?._id;
+    if (!userId || !restaurantId) {
+      res.status(400).json({ success: false, message: 'Missing userId or restaurantId' });
+      return;
+    }
+
+    // Find or create user consumption data
+    let userConsumption = await UserConsumption.findOne({
+      userId: new ObjectId(userId)
+    }) as IUserConsumption | null;
+
+    if (!userConsumption) {
+      userConsumption = new UserConsumption({
+        userId: new ObjectId(userId),
+        restaurants: [new ObjectId(restaurantId)],
+        usedCoupons: [],
+      });
+      await userConsumption.save();
+    } else if (!userConsumption.restaurants.some(id => id.equals(restaurantId))) {
+      userConsumption.restaurants.push(restaurantId);
+      await userConsumption.save();
+    }
+
+    // Get current month's used coupons
+    const currentDate = new Date();
+    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+
+    const restaurantUsage = userConsumption.usedCoupons.find(
+      (usage) => usage.restaurantId.equals(restaurantId)
+    );
+
+    const usedCouponsThisMonth = restaurantUsage
+      ? restaurantUsage.usedCoupons.filter((coupon) => coupon.usedDate >= firstDayOfMonth)
+      : [];
+
+    // Fetch all coupons for the current restaurant and sort by couponNumber
+    const allCoupons = await couponModel
+      .find({ restaurantId })
+      .sort({ couponNumber: 1 }) as ICoupon[];
+
+    // Get used coupon numbers for this month
+    const usedCouponNumbers = new Set(
+      usedCouponsThisMonth.map((usedCoupon) => {
+        const coupon = allCoupons.find(c => c._id.equals(usedCoupon.couponId));
+        return coupon?.couponNumber;
+      }).filter((num): num is number => num !== undefined)
+    );
+
+    // Find the highest used coupon number
+    const highestUsedNumber = Math.max(...Array.from(usedCouponNumbers), 0);
+
+    // Process coupons with canUse flag
+    const { usedCoupons, unusedCoupons } = allCoupons.reduce<{
+      usedCoupons: ICoupon[];
+      unusedCoupons: any[];
+    }>((acc, coupon) => {
+      if (usedCouponNumbers.has(coupon.couponNumber)) {
+        acc.usedCoupons.push(coupon);
+      } else {
+        const canUse = coupon.couponNumber === highestUsedNumber + 1;
+        acc.unusedCoupons.push({
+          ...coupon,
+          canUse
+        });
+      }
+      return acc;
+    }, { usedCoupons: [], unusedCoupons: [] });
+
     res.status(200).json({
       success: true,
       usedCoupons,
       unusedCoupons,
       restaurentData
     });
+
   } catch (error) {
     console.error('Error in getUserConsumptionData:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
