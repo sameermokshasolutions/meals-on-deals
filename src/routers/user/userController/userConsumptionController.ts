@@ -206,7 +206,7 @@ export const getUserConsumptionData = async (
     const { barcodeId } = req.params;
 
     // Find restaurant data
-    const restaurentData:any = await restaurantModel.findOne({ barcodeId }) as  | null;
+    const restaurentData: any = await restaurantModel.findOne({ barcodeId }) as | null;
     if (!restaurentData) {
       next(createHttpError(404, "Restaurant not found"));
       return;
@@ -265,26 +265,37 @@ export const getUserConsumptionData = async (
 
     // Process coupons with canUse flag
     const { usedCoupons, unusedCoupons } = allCoupons.reduce<{
-      usedCoupons: ICoupon[];
+      usedCoupons: any[];
       unusedCoupons: any[];
     }>((acc, coupon) => {
+      // Convert Mongoose document to plain object and remove unnecessary fields
+      const plainCoupon = coupon;
+
       if (usedCouponNumbers.has(coupon.couponNumber)) {
-        acc.usedCoupons.push(coupon);
+        // Add canUse property to used coupons
+        acc.usedCoupons.push({
+          ...plainCoupon,
+          canUse: true
+        });
       } else {
         const canUse = coupon.couponNumber === highestUsedNumber + 1;
         acc.unusedCoupons.push({
-          ...coupon,
+          ...plainCoupon,
           canUse
         });
       }
       return acc;
     }, { usedCoupons: [], unusedCoupons: [] });
 
+    // Convert restaurentData to plain object if it's a Mongoose document
+    const plainRestaurantData = restaurentData.toObject ?
+      restaurentData.toObject() : restaurentData;
+
     res.status(200).json({
       success: true,
       usedCoupons,
       unusedCoupons,
-      restaurentData
+      restaurentData: plainRestaurantData
     });
 
   } catch (error) {
