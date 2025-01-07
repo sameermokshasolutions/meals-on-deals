@@ -452,6 +452,7 @@ export const getUserConsumptionData = async (
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
+import { io } from '../../../config/socket';
 
 export const redeemCoupen = async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -540,6 +541,7 @@ export const redeemCoupen = async (req: any, res: Response, next: NextFunction):
     const updatedUserConsumption = await userConsumption.save();
     console.log('updatedUserConsumption:', updatedUserConsumption);
 
+    io.to(`user-${userId}`).emit('restaurant-update', { message: "Coupon reedeemd successfully" });
     res.status(200).json({
       message: 'Coupon redeemed successfully',
       discountPercentage: coupon.discount,
