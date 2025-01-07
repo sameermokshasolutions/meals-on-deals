@@ -529,7 +529,10 @@ export const redeemCoupen = async (req: any, res: Response, next: NextFunction):
     // Save the updated userConsumption
     const updatedUserConsumption = await userConsumption.save();
     console.log('updatedUserConsumption:', updatedUserConsumption);
-    io.to(`user-${userId}`).emit('restaurant-update', { message: "Coupon reedeemd successfully" });
+    io.to(`user-${userId}`).emit('restaurant-update', {
+      success: true,
+      message: "Coupon reedeemd successfully"
+    });
     res.status(200).json({
       message: 'Coupon redeemed successfully',
       discountPercentage: coupon.discount,
