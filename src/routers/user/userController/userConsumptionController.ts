@@ -2,13 +2,10 @@ import restaurantUsers from '../userModals/restaurentUsers';
 import { NextFunction, Request, Response } from 'express';
 import { ObjectId } from 'mongodb';
 import mongoose, { Document } from 'mongoose';
-
 import UserConsumption from '../userModals/UserConsumption';
 import couponModel from '../../coupens/models/couponModel';
 import restaurantModel from '../../restaurant/models/restaurantModel';
 import createHttpError from 'http-errors';
-
-
 interface IUserConsumption {
   userId: ObjectId;
   restaurants: ObjectId[];
@@ -502,22 +499,15 @@ export const redeemCoupen = async (req: any, res: Response, next: NextFunction):
         );
       })
     );
-
-    console.log('isCouponUsed:', isCouponUsed);
-
     if (isCouponUsed) {
       res.status(400).json({ message: 'Coupon already used this month' });
       return;
     }
-
     // Fetch the coupon details
-
-
     // Check if the restaurant exists in the user's usedCoupons
     const restaurantIndex = userConsumption.usedCoupons.findIndex(
       (usage) => usage.restaurantId.toString() === coupon.restaurantId.toString()
     );
-
     if (restaurantIndex > -1) {
       // Update the existing restaurant's usedCoupons
       userConsumption.usedCoupons[restaurantIndex].usedCoupons.push({
@@ -536,11 +526,9 @@ export const redeemCoupen = async (req: any, res: Response, next: NextFunction):
         ],
       });
     }
-
     // Save the updated userConsumption
     const updatedUserConsumption = await userConsumption.save();
     console.log('updatedUserConsumption:', updatedUserConsumption);
-
     io.to(`user-${userId}`).emit('restaurant-update', { message: "Coupon reedeemd successfully" });
     res.status(200).json({
       message: 'Coupon redeemed successfully',
