@@ -121,7 +121,6 @@ export const deleteRestaurant = async (req: any, res: Response, next: NextFuncti
     restaurant.active = restaurant.active ? false : true;
 
     await restaurant.save();
-
     res.status(200).json({
       success: true,
       message: 'restaurant updated successfully',

@@ -12,6 +12,7 @@ import { deleteRestaurant, listRestaurants, registerRestaurant, restaurantCoupon
 const restaurantRouter = express.Router();
 // Route for user registration with validation middleware
 restaurantRouter.get("/users", validateRequest, authenticateToken, restaurantUsers);
+// restaurantRouter.get("/getRestaurentU", validateRequest, authenticateToken, restaurantUsers);
 restaurantRouter.get("/coupons", validateRequest, authenticateToken, restaurantCoupons);
 restaurantRouter.post("/createrestaurant", ...restaurantValidator, validateRequest, authenticateToken, registerRestaurant);
 restaurantRouter.put("/:id", ...restaurantValidator, validateRequest, authenticateToken, updateRestaurant);

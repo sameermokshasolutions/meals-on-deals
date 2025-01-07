@@ -157,7 +157,6 @@ export const sssgetUserConsumptionData = async (req: any, res: Response, next: N
 
 
 
-// Define interfaces
 interface IRequest {
   user?: {
     id: string;
@@ -167,35 +166,28 @@ interface IRequest {
   };
 }
 
-interface IRestaurant {
+interface ICouponDocument {
   _id: ObjectId;
-  barcodeId: string;
-  // Add other restaurant fields as needed
-}
-
-interface ICoupon {
-  _id: ObjectId;
-  restaurantId: ObjectId;
+  couponTitle: string;
+  discount: number;
   couponNumber: number;
-  // Add other coupon fields as needed
-}
-
-interface IUsedCoupon {
-  couponId: ObjectId;
-  usedDate: Date;
-}
-
-interface IRestaurantUsage {
+  active: boolean;
   restaurantId: ObjectId;
-  usedCoupons: IUsedCoupon[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-interface IUserConsumption {
-  userId: ObjectId;
-  restaurants: ObjectId[];
-  usedCoupons: IRestaurantUsage[];
-  save(): Promise<IUserConsumption>;
+interface IRestaurantDocument {
+  _id: ObjectId;
+  restaurantName: string;
+  address: string;
+  contact: string;
+  barcodeId: string;
+  email: string;
+  logoUrl: string;
+  active: boolean;
 }
+
 export const getUserConsumptionData = async (
   req: IRequest,
   res: Response,
@@ -206,13 +198,13 @@ export const getUserConsumptionData = async (
     const { barcodeId } = req.params;
 
     // Find restaurant data
-    const restaurentData: any = await restaurantModel.findOne({ barcodeId }) as | null;
-    if (!restaurentData) {
+    const restaurantData = await restaurantModel.findOne({ barcodeId }).lean() as IRestaurantDocument | null;
+    if (!restaurantData) {
       next(createHttpError(404, "Restaurant not found"));
       return;
     }
 
-    const restaurantId = restaurentData?._id;
+    const restaurantId = restaurantData._id;
     if (!userId || !restaurantId) {
       res.status(400).json({ success: false, message: 'Missing userId or restaurantId' });
       return;
@@ -221,16 +213,16 @@ export const getUserConsumptionData = async (
     // Find or create user consumption data
     let userConsumption = await UserConsumption.findOne({
       userId: new ObjectId(userId)
-    }) as IUserConsumption | null;
+    });
 
     if (!userConsumption) {
-      userConsumption = new UserConsumption({
+      const newUserConsumption = new UserConsumption({
         userId: new ObjectId(userId),
-        restaurants: [new ObjectId(restaurantId)],
+        restaurants: [restaurantId],
         usedCoupons: [],
       });
-      await userConsumption.save();
-    } else if (!userConsumption.restaurants.some(id => id.equals(restaurantId))) {
+      userConsumption = await newUserConsumption.save();
+    } else if (!userConsumption.restaurants.some(id => id.toString() === restaurantId.toString())) {
       userConsumption.restaurants.push(restaurantId);
       await userConsumption.save();
     }
@@ -240,22 +232,23 @@ export const getUserConsumptionData = async (
     const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
 
     const restaurantUsage = userConsumption.usedCoupons.find(
-      (usage) => usage.restaurantId.equals(restaurantId)
+      (usage) => usage.restaurantId.toString() === restaurantId.toString()
     );
 
     const usedCouponsThisMonth = restaurantUsage
       ? restaurantUsage.usedCoupons.filter((coupon) => coupon.usedDate >= firstDayOfMonth)
       : [];
 
-    // Fetch all coupons for the current restaurant and sort by couponNumber
+    // Fetch all coupons and convert to plain objects
     const allCoupons = await couponModel
       .find({ restaurantId })
-      .sort({ couponNumber: 1 }) as ICoupon[];
+      .sort({ couponNumber: 1 })
+      .lean() as any[];
 
     // Get used coupon numbers for this month
     const usedCouponNumbers = new Set(
       usedCouponsThisMonth.map((usedCoupon) => {
-        const coupon = allCoupons.find(c => c._id.equals(usedCoupon.couponId));
+        const coupon = allCoupons.find(c => c._id.toString() === usedCoupon.couponId.toString());
         return coupon?.couponNumber;
       }).filter((num): num is number => num !== undefined)
     );
@@ -263,39 +256,54 @@ export const getUserConsumptionData = async (
     // Find the highest used coupon number
     const highestUsedNumber = Math.max(...Array.from(usedCouponNumbers), 0);
 
-    // Process coupons with canUse flag
+    // Process and clean coupon data
     const { usedCoupons, unusedCoupons } = allCoupons.reduce<{
-      usedCoupons: any[];
-      unusedCoupons: any[];
+      usedCoupons: Array<ICouponDocument & { canUse: boolean }>;
+      unusedCoupons: Array<ICouponDocument & { canUse: boolean }>;
     }>((acc, coupon) => {
-      // Convert Mongoose document to plain object and remove unnecessary fields
-      const plainCoupon = coupon;
+      const cleanCoupon = {
+        _id: coupon._id,
+        couponTitle: coupon.couponTitle,
+        discount: coupon.discount,
+        couponNumber: coupon.couponNumber,
+        active: coupon.active,
+        restaurantId: coupon.restaurantId,
+        createdAt: coupon.createdAt,
+        updatedAt: coupon.updatedAt,
+      };
 
       if (usedCouponNumbers.has(coupon.couponNumber)) {
-        // Add canUse property to used coupons
         acc.usedCoupons.push({
-          ...plainCoupon,
+          ...cleanCoupon,
           canUse: true
         });
       } else {
         const canUse = coupon.couponNumber === highestUsedNumber + 1;
         acc.unusedCoupons.push({
-          ...plainCoupon,
+          ...cleanCoupon,
           canUse
         });
       }
       return acc;
     }, { usedCoupons: [], unusedCoupons: [] });
 
-    // Convert restaurentData to plain object if it's a Mongoose document
-    const plainRestaurantData = restaurentData.toObject ?
-      restaurentData.toObject() : restaurentData;
+    // Clean restaurant data
+    const cleanRestaurantData = {
+      _id: restaurantData._id,
+      restaurantName: restaurantData.restaurantName,
+      address: restaurantData.address,
+      contact: restaurantData.contact,
+      barcodeId: restaurantData.barcodeId,
+      email: restaurantData.email,
+      logoUrl: restaurantData.logoUrl,
+      active: restaurantData.active
+    };
 
     res.status(200).json({
       success: true,
       usedCoupons,
       unusedCoupons,
-      restaurentData: plainRestaurantData
+      restaurantData: cleanRestaurantData
     });
 
   } catch (error) {
