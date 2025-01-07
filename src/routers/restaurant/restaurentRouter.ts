@@ -5,13 +5,13 @@ import { validateRequest } from "../../middlewares/validateRequest";
 
 import { authenticateToken } from "../../middlewares/authMiddleware";
 import { restaurantValidator } from "./validator/createRestaurentValidate";
-import { deleteRestaurant, listRestaurants, registerRestaurant, restaurantCoupons, restaurantInfo, restaurantUsers, updateRestaurant } from "./restaurantController/RestaurentController";
+import { deleteRestaurant,  getRestaurantUserData,  listRestaurants, registerRestaurant, restaurantCoupons, restaurantInfo,  updateRestaurant } from "./restaurantController/RestaurentController";
 
 
 
 const restaurantRouter = express.Router();
 // Route for user registration with validation middleware
-restaurantRouter.get("/users", validateRequest, authenticateToken, restaurantUsers);
+restaurantRouter.get("/users", validateRequest, authenticateToken, getRestaurantUserData);
 // restaurantRouter.get("/getRestaurentU", validateRequest, authenticateToken, restaurantUsers);
 restaurantRouter.get("/coupons", validateRequest, authenticateToken, restaurantCoupons);
 restaurantRouter.post("/createrestaurant", ...restaurantValidator, validateRequest, authenticateToken, registerRestaurant);

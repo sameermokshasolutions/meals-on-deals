@@ -5,7 +5,7 @@ import createHttpError from 'http-errors';
 import restaurantModel from '../models/restaurantModel';
 import usermodal from '../../user/userModals/usermodal';
 import couponModel from '../../coupens/models/couponModel';
-
+import restaurantUsers from '../../user/userModals/restaurentUsers';
 export const registerRestaurant = async (req: any, res: Response, next: NextFunction): Promise<void> => {
 
   try {
@@ -201,29 +201,40 @@ export const listRestaurants = async (req: any, res: any, next: NextFunction) =>
     next(error);
   }
 };
-export const restaurantUsers = async (req: any, res: any, next: NextFunction) => {
+
+
+export const getRestaurantUserData = async (req: any, res: Response, next: NextFunction) => {
   try {
-    const userId = req.user?.id; // Ensure user ID is present
-    if (!userId) {
-      throw createHttpError(401, 'Authentication Failed');
+    const restaurantId = req.user?.id; // Assuming the restaurant ID is coming from the authenticated user
+
+    if (!restaurantId) {
+      throw createHttpError(404, 'Restaurant ID is required');
+
     }
-    const users = await usermodal.find({
-      restaurantId: userId,
-      role: 'user'
-    });
-    let dummy = [{
-      role: 'User',
-      email: 'samsk7774@gmail.com ',
-      contactNumber: '1234567890'
-    }]
+
+    // Step 1: Find the restaurant and associated user IDs
+    const restaurantAssociatedUsers = await restaurantUsers.findOne({ restaurantId }).lean();
+
+    if (!restaurantAssociatedUsers || !restaurantAssociatedUsers.users.length) {
+      throw createHttpError(404, 'No users foound for this restaurent ');
+    }
+
+    // Step 2: Retrieve user details (emails) based on user IDs
+    const users = await usermodal.find(
+      { _id: { $in: restaurantAssociatedUsers.users } }, // Match user IDs
+      "email" // Only select the 'email' field
+    ).lean();
+
+    // Step 3: Send response
     res.status(200).json({
       success: true,
-      data: dummy
+      data: users,
     });
   } catch (error) {
     next(error);
   }
 };
+
 export const restaurantCoupons = async (req: any, res: any, next: NextFunction) => {
   try {
     const userId = req.user?.id; // Ensure user ID is present
