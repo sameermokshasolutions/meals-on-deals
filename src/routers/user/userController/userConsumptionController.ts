@@ -28,7 +28,7 @@ export const getRestaurent = async (req: any, res: Response, next: NextFunction)
     const userConsumption = await UserConsumption.findOne({ userId: new ObjectId(userId) });
     if (userConsumption && userConsumption.restaurants) {
       const restaurantIds = userConsumption.restaurants.map(id => new ObjectId(id));
-      const restaurants = await restaurantModel.find({ _id: { $in: restaurantIds } }).select('restaurantName address contact active barcodeId');
+      const restaurants = await restaurantModel.find({ _id: { $in: restaurantIds } }).select('restaurantName address contact active barcodeId logoUrl');
       res.status(200).json({
         success: true,
         data: restaurants
