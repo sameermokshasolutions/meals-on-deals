@@ -222,7 +222,7 @@ export const getRestaurantUserData = async (req: any, res: Response, next: NextF
     // Step 2: Retrieve user details (emails) based on user IDs
     const users = await usermodal.find(
       { _id: { $in: restaurantAssociatedUsers.users } }, // Match user IDs
-      "email" // Only select the 'email' field
+      "email createdAt" // Only select the 'email' field
     ).lean();
 
     // Step 3: Send response
