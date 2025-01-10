@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body style="margin:0;padding:20px;background-color:#E9E4C9;font-family:Arial,sans-serif">
+  <center>
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" width="100%"
+      style="max-width:600px;margin:20px auto">
+      <tr>
+        <td style="padding:30px;background:#ffffff;border-radius:16px;text-align:center">
+          <!-- Logo -->
+          <img src="{{logoUrl}}" alt="Meals On Deals" width="180" style="border-radius:16px;margin-bottom:20px">
+
+          <!-- Header -->
+          <h1 style="color:#F73A47;font-size:24px;margin:0 0 20px 0">Verify Your Email</h1>
+
+          <!-- Message -->
+          <p style="color:#555;font-size:16px;line-height:1.5;margin:0 0 20px 0">
+            Thank you for choosing Meals On Deals. Use this code to complete your registration.
+          </p>
+
+          <!-- OTP Box -->
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:20px 0">
+            <tr>
+              <td style="background:#E9E4C9;padding:20px;border-radius:12px;text-align:center">
+                <div style="font-size:32px;color:#F73A47;font-weight:bold;letter-spacing:8px;font-family:monospace">
+                  {{otp}}</div>
+                <p style="color:#666;font-size:14px;margin:10px 0 0">Expires in 5 minutes</p>
+              </td>
+            </tr>
+          </table>
+
+          <!-- Warning -->
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:20px 0">
+            <tr>
+              <td style="background:#FFF5F5;border-left:4px solid #F73A47;padding:15px;text-align:left">
+                <p style="color:#666;font-size:14px;margin:0">
+                  If you didn't request this code, please ignore this email.
+                </p>
+              </td>
+            </tr>
+          </table>
+
+          <!-- Footer -->
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+            style="margin-top:20px;border-top:1px solid #eee">
+            <tr>
+              <td style="padding-top:20px;color:#666;font-size:12px;text-align:center">
+                <p style="margin:5px 0">Sent to {{email}}</p>
+                <p style="margin:5px 0">&copy; {{year}} Meals On Deals</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </center>
+</body>
+
+</html>

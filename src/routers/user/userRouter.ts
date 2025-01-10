@@ -1,13 +1,17 @@
 import express from "express";
 import { loginValidation, registerValidation } from "./validator/userValidators";
 import { validateRequest } from "../../middlewares/validateRequest";
-import { addLogo, registerUser } from "./userController/registerController";
+import { addLogo, generateOtp, registerUser } from "./userController/registerController";
 import { deleteUser, loginUser, restaurentUser } from "./userController/loginController";
 import { authenticateToken } from "../../middlewares/authMiddleware";
 import { redeemCoupen, getUserConsumptionData, getRestaurent } from "./userController/userConsumptionController";
 
 
 const userRouter = express.Router();
+
+// OTP Verification
+userRouter.get('/generate-otp', validateRequest, generateOtp);
+
 // Route for user registration with validation middleware
 userRouter.post("/register", ...registerValidation, validateRequest, registerUser);
 userRouter.post("/updateLogo", validateRequest, authenticateToken, addLogo);
@@ -20,4 +24,5 @@ userRouter.delete("/", deleteUser);
 userRouter.get("/getrestaurant", validateRequest, authenticateToken, getRestaurent);
 userRouter.get("/getrestaurant/:barcodeId", validateRequest, authenticateToken, getUserConsumptionData);
 userRouter.get("/redeemCoupon/:couponId/:userId", validateRequest, authenticateToken, redeemCoupen);
+
 export default userRouter;

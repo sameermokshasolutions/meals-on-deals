@@ -7,12 +7,57 @@ import crypto from 'crypto';
 import usermodal from '../userModals/usermodal';
 import jwt from 'jsonwebtoken';
 import { config } from '../../../config/config';
-
+import sendEmail from '../../../utils/sendEmail';
+import OtpModel from '../../../models/otpModel';
 
 
 
 if (!process.env.JWT_SECRET) {
   throw new Error('JWT_SECRET not set in environment variables');
+}
+
+// Generate OTP
+function createOTP() {
+  const otp = Math.floor(1000 + Math.random() * 9000).toString();
+  const hashOtp = bcrypt.hashSync(otp, 10);
+  console.log("[OTP]", otp);
+  console.log("[OTP]", hashOtp);
+  return { otp, hashOtp };
+}
+
+// send OTP
+export const generateOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+
+    const { email } = req.body;
+
+    if (!email || email === '') {
+      throw createHttpError(500, 'Email not found');
+    }
+
+    const otp = createOTP();
+
+    console.log("email", email);
+
+
+    await OtpModel.create({
+      email,
+      otp: otp.hashOtp,
+    })
+
+    await sendEmail({
+      email: "hamshadmoksha@gmail.com",
+      otp: otp.otp,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'OTP Sent Successfully',
+    });
+
+  } catch (error) {
+    next(error); // Pass any error to the error handling middleware
+  }
 }
 
 
