@@ -1,5 +1,5 @@
 import express from "express";
-import { loginValidation, registerValidation } from "./validator/userValidators";
+import { loginValidation, otpValidation, registerValidation } from "./validator/userValidators";
 import { validateRequest } from "../../middlewares/validateRequest";
 import { addLogo, generateOtp, registerUser } from "./userController/registerController";
 import { deleteUser, loginUser, restaurentUser } from "./userController/loginController";
@@ -10,10 +10,10 @@ import { redeemCoupen, getUserConsumptionData, getRestaurent } from "./userContr
 const userRouter = express.Router();
 
 // OTP Verification
-userRouter.get('/generate-otp', validateRequest, generateOtp);
+userRouter.post('/generate-otp', ...registerValidation, validateRequest, generateOtp);
 
 // Route for user registration with validation middleware
-userRouter.post("/register", ...registerValidation, validateRequest, registerUser);
+userRouter.post("/register", ...otpValidation, validateRequest, registerUser);
 userRouter.post("/updateLogo", validateRequest, authenticateToken, addLogo);
 // Route for user login with validation middleware
 userRouter.post("/login", ...loginValidation, validateRequest, loginUser);

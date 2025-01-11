@@ -19,9 +19,8 @@ async function getCompiledTemplate() {
   }
 }
 
-const sendEmail = async ({ email, otp }: { email: string, otp: string }): Promise<boolean> => {
+const sendEmail = async ({ email, otp }: { email: string, otp: string }): Promise<void> => {
   try {
-
 
     // Configure nodemailer
     const transporter = nodemailer.createTransport({
@@ -71,16 +70,13 @@ const sendEmail = async ({ email, otp }: { email: string, otp: string }): Promis
       if (error) {
         console.log(error);
         console.log("email not sent!");
-        return false;
       }
       console.log("email sent successfully");
-      return true;
     });
   } catch (error) {
     console.log("email not sent!");
     console.log(error);
   }
-  return false;
 };
 
 export default sendEmail;

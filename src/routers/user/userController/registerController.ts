@@ -9,6 +9,8 @@ import jwt from 'jsonwebtoken';
 import { config } from '../../../config/config';
 import sendEmail from '../../../utils/sendEmail';
 import OtpModel from '../../../models/otpModel';
+import otpModel from '../../../models/otpModel';
+import { log } from 'console';
 
 
 
@@ -25,20 +27,30 @@ function createOTP() {
   return { otp, hashOtp };
 }
 
-// send OTP
+// OTP Verification
 export const generateOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
 
-    const { email } = req.body;
+    let { email, password, contactNumber, role } = req.body;
 
     if (!email || email === '') {
       throw createHttpError(500, 'Email not found');
     }
 
+    // Check if the email is already registered
+    const existingUser = await usermodal.findOne({ email });
+    // Check if the phone number is already registered
+    const existingPhone = await usermodal.findOne({ contactNumber });
+    if (existingUser) {
+      throw createHttpError(409, 'Email already registered');
+    }
+    if (existingPhone) {
+      throw createHttpError(409, 'Phone Number already in Use');
+    }
+
     const otp = createOTP();
 
     console.log("email", email);
-
 
     await OtpModel.create({
       email,
@@ -46,7 +58,7 @@ export const generateOtp = async (req: Request, res: Response, next: NextFunctio
     })
 
     await sendEmail({
-      email: "hamshadmoksha@gmail.com",
+      email: email,
       otp: otp.otp,
     });
 
@@ -60,23 +72,30 @@ export const generateOtp = async (req: Request, res: Response, next: NextFunctio
   }
 }
 
-
 // Handler to register a new user 
 export const registerUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    let { email, password, contactNumber, role } = req.body;
+    let { email, password, contactNumber, role, userOTP } = req.body;
+
+
+    // OTP Verification
+    const allMatchingOtps = await OtpModel.find({ email });
+    const otpRecord = allMatchingOtps.pop();
+
+    if (!allMatchingOtps || !otpRecord) {
+      throw createHttpError(410, 'OTP has expired');
+    }
+
+    const isValid = await bcrypt.compare(userOTP, otpRecord.otp);
+
+    if (!isValid) {
+      throw createHttpError(400, 'OTP is invalid');
+    }
+
+    await otpModel.deleteOne({ _id: otpRecord._id });
+
     if (role == '') {
       role = 'user'
-    }
-    // Check if the email is already registered
-    const existingUser = await usermodal.findOne({ email });
-    // Check if the phone number is already registered
-    const existingPhone = await usermodal.findOne({ contactNumber });
-    if (existingUser) {
-      throw createHttpError(409, 'Email already registered');
-    }
-    if (existingPhone) {
-      throw createHttpError(409, 'Phone Number already in Use');
     }
 
     // Generate a unique user ID for the new user
@@ -88,7 +107,6 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
     // Create a new user with the provided data and default inactive status
     const user = new usermodal({
       userId,
-
       email,
       password: hashedPassword,
       contactNumber,
