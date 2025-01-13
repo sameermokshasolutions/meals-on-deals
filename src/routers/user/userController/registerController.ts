@@ -79,10 +79,13 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
 
 
     // OTP Verification
-    const allMatchingOtps = await OtpModel.find({ email });
-    const otpRecord = allMatchingOtps.pop();
+    const otpRecord = await OtpModel.findOne({ email }).sort({ createdAt: -1 });
 
-    if (!allMatchingOtps || !otpRecord) {
+    // const allMatchingOtps = await OtpModel.find({ email });
+    // const otpRecord = allMatchingOtps.pop();
+
+    // if (!allMatchingOtps || !otpRecord) {
+    if (!otpRecord) {
       throw createHttpError(410, 'OTP has expired');
     }
 
