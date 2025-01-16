@@ -216,7 +216,7 @@ export const getRestaurantUserData = async (req: any, res: Response, next: NextF
     const restaurantAssociatedUsers = await restaurantUsers.findOne({ restaurantId }).lean();
 
     if (!restaurantAssociatedUsers || !restaurantAssociatedUsers.users.length) {
-      throw createHttpError(404, 'No users foound for this restaurent ');
+      throw createHttpError(404, 'No users found for this restaurent');
     }
 
     // Step 2: Retrieve user details (emails) based on user IDs
