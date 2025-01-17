@@ -2,7 +2,7 @@ import express from "express";
 import { loginValidation, otpValidation, registerValidation } from "./validator/userValidators";
 import { validateRequest } from "../../middlewares/validateRequest";
 import { addLogo, generateOtp, registerUser } from "./userController/registerController";
-import { deleteUser, loginUser, restaurentUser } from "./userController/loginController";
+import { deleteUser, loginUser, logoutUser, restaurentUser } from "./userController/loginController";
 import { authenticateToken } from "../../middlewares/authMiddleware";
 import { redeemCoupen, getUserConsumptionData, getRestaurent } from "./userController/userConsumptionController";
 
@@ -17,6 +17,7 @@ userRouter.post("/register", ...otpValidation, validateRequest, registerUser);
 userRouter.post("/updateLogo", validateRequest, authenticateToken, addLogo);
 // Route for user login with validation middleware
 userRouter.post("/login", ...loginValidation, validateRequest, loginUser);
+userRouter.post("/logout", validateRequest, logoutUser);
 userRouter.post("/login/restaurent", ...loginValidation, validateRequest, restaurentUser);
 userRouter.delete("/", deleteUser);
 //  user Consumtion routes 

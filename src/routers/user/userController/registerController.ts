@@ -124,14 +124,13 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
     userResponse.password = '';
 
     // Generate a JWT token for the authenticated user with a 10-hour expiration
-    const token = jwt.sign({ id: userResponse._id }, config.jwtSecret, { expiresIn: '10h' });
+    const token = jwt.sign({ id: userResponse._id }, config.jwtSecret);
 
     // Set the token as an HTTP-only cookie
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
       sameSite: 'strict',
-      maxAge: 10 * 60 * 60 * 1000 // 10 hours
     });
 
 
@@ -139,6 +138,7 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
     res.status(200).json({
       success: true,
       message: 'User registered successfully',
+      token: token,
       data: userResponse,
     });
   } catch (error) {
