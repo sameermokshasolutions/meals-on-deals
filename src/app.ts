@@ -56,6 +56,9 @@ app.get('/', (req: Request, res: Response) => {
 
 // 404 handler
 app.use((req: Request, res: Response) => {
+  if (req.path.includes('/coupon/')) {
+    res.redirect('https://play.google.com/store/apps/details?id=com.mealsondeals');
+  }
   res.status(404).json({
     success: false,
     message: 'Not Found',
