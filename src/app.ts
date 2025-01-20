@@ -11,7 +11,6 @@ import reportRouter from "./routers/reports/reportRouter";
 import restaurantRouter from "./routers/restaurant/restaurentRouter";
 
 
-
 const app: Application = express();
 // Middleware to parse cookies
 app.use(cookieParser());
@@ -56,14 +55,17 @@ app.get('/', (req: Request, res: Response) => {
 
 // 404 handler
 app.use((req: Request, res: Response) => {
-  if (req.path.includes('/coupon/')) {
-    res.redirect('https://play.google.com/store/apps/details?id=com.mealsondeals');
-  }
+  // if (req.path.includes('/coupon/')) {
+  //   console.log('Redirecting to Play Store');
+  // }
+
+  console.log('unknown link');
+
   res.status(404).json({
     success: false,
     message: 'Not Found',
     path: req.path
-  });
+  }).redirect('https://play.google.com/store/apps/details?id=com.mealsondeals');
 });
 
 // Helper function to find changes between objects
