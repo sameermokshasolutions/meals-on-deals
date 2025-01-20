@@ -18,6 +18,7 @@ const _config = {
   EMAIL_NAME: process.env.EMAIL_NAME,
   PASS: process.env.PASS,
   ADMIN_EMAIL: process.env.ADMIN_EMAIL,
+  FIREBASE_SERVICE_ACCOUNT_KEY: process.env.FIREBASE_SERVICE_ACCOUNT_KEY as string,
 };
 
 

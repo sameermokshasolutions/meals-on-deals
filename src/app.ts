@@ -9,7 +9,9 @@ import userRouter from "./routers/user/userRouter";
 import coupenRouter from "./routers/coupens/coupenRouter";
 import reportRouter from "./routers/reports/reportRouter";
 import restaurantRouter from "./routers/restaurant/restaurentRouter";
+import firebase from "./firebase/firebase";
 
+firebase;
 
 const app: Application = express();
 // Middleware to parse cookies
